@@ -1,0 +1,70 @@
+{% extends 'layout.html' %}
+{% block content %}
+            <div class="md:w-7/12 p-8 md:p-12">
+                
+                <div class="mb-10">
+                    <p class="text-xs font-bold text-red-600 uppercase tracking-widest mb-3">Priority Action</p>
+                    <a href="{% url 'emergency' %}" class="group block w-full bg-amber-400 hover:bg-amber-500 text-slate-900 p-6 rounded-2xl shadow-lg transition-all transform hover:-translate-y-1 border-b-4 border-amber-600">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="bg-slate-900 text-amber-400 p-3 rounded-xl mr-4 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-black">Report an Accident</h4>
+                                    <p class="text-sm font-medium opacity-80">Immediate AI-assisted incident logging</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right opacity-50"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="relative flex py-5 items-center">
+                    <div class="flex-grow border-t border-gray-200"></div>
+                    <span class="flex-shrink mx-4 text-gray-400 text-xs font-bold uppercase">Or Staff/User Login</span>
+                    <div class="flex-grow border-t border-gray-200"></div>
+                </div>
+                {% if error %}
+<p style="color:red; text-align:center; margin-top:10px;">
+    {{ error }}
+</p>
+{% endif %}
+
+                <form  method="POST" action="/login/" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                            <input type="email" name="email" required placeholder="yourname@domain.com" 
+                                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
+                            <input type="password" name="password" required placeholder="••••••••" 
+                                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <select name="role" class="text-sm font-bold text-blue-600 bg-transparent outline-none cursor-pointer">
+                            <option value="citizen">Citizen Account</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                      
+                       <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-xl font-bold transition-colors">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-8 text-center">
+                    
+                    <a href="{% url 'register' %}" class="text-sm text-gray-400 hover:text-blue-600 transition-colors">Register →</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock  %}
+</body>
+</html>

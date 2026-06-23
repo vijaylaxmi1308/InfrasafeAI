@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InfraSafe AI | Emergency Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #ff4d4d, #111);
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+    }
+
+    h2 {
+      margin-top: 20px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    video, canvas {
+      width: 100%;
+      
+      border-radius: 20px;
+      margin-top: 15px;
+      border: 4px solid white;
+      background: black;
+      object-cover: cover;
+    }
+
+    .btn-group {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 15px 25px;
+      border: none;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:active { transform: scale(0.95); }
+
+    .capture { background: #00cc66; color: white; box-shadow: 0 4px 15px rgba(0,204,102,0.3); }
+    .retake { background: #ffaa00; color: black; }
+    .submit { background: #ff1a1a; color: white; width: 100%; justify-content: center; margin-top: 10px; font-size: 18px; }
+
+    .info {
+      margin-top: 20px;
+      text-align: left;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 15px;
+      border-radius: 15px;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .info p { margin: 5px 0; font-family: monospace; }
+    
+    a {
+      color: #00ccff;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>🚨 SOS REPORT</h2>
+{% if error %}
+<div class="bg-red-100 text-red-600 p-4 rounded-xl mb-4">
+    {{ error }}
+</div>
+{% endif %}
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+<form method="POST" action="/submit_report/">
+{% csrf_token %}
+  <div class="btn-group">
+    <button class="btn capture" type="button" onclick="captureImage()">
+      <i class="fas fa-camera"></i> Capture
+    </button>
+    <button class="btn retake" type="button" onclick="retake()">
+      <i class="fas fa-undo"></i> Retake
+    </button>
+    <button class="btn submit" type="submit" onclick="submitReport()">
+      <i class="fas fa-paper-plane"></i> Submit SOS
+    </button>
+  </div>
+
+
+  <div class="info">
+    <p id="time">🕒 Time: Synchronizing...</p>
+    <p id="coords">📍 Coords: Waiting for GPS...</p>
+    <p id="location">🏠 Address: Locating...</p>
+    <div id="mapLink"></div>
+  </div>
+<input type="hidden" name="image" id="imageData">
+<input type="hidden" name="location" id="locationData">
+<input type="hidden" name="time" id="timeData">
+</div>
+
+</form>
+
+<script>
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+
+  let imageData = null;
+  let latitude = "";
+  let longitude = "";
+  let address = "";
+  let timestamp = "";
+
+  // 1. Initialize Camera & Live Clock
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    .then(stream => { video.srcObject = stream; })
+    .catch(() => { alert("Camera access is required for SOS reports."); });
+
+  setInterval(() => {
+    if(!imageData) {
+      document.getElementById("time").innerText = "🕒 Time: " + new Date().toLocaleString();
+    }
+  }, 1000);
+
+  // 2. Continuous Location Tracking (Updates address before you even click)
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(async (pos) => {
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+      document.getElementById("coords").innerText = `📍 Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`;
+      
+      // Get Address via Nominatim
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        address = data.display_name || "Unknown Location";
+        document.getElementById("location").innerText = "🏠 " + address;
+        document.getElementById("mapLink").innerHTML = `<a href="https://www.google.com/maps?q=${latitude},${longitude}" target="_blank">🔗 View Live Map</a>`;
+      } catch (err) { /* Silent fail for address */ }
+    }, null, { enableHighAccuracy: true });
+  }
+
+  function captureImage() {
+    if (video.style.display !== "none") {
+      const ctx = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw the frame
+      ctx.drawImage(video, 0, 0);
+      
+      // Burn metadata into pixels
+      timestamp = new Date().toLocaleString();
+      const fontSize = Math.floor(canvas.height / 20);
+      ctx.fillStyle = "rgba(0,0,0,0.7)";
+      ctx.fillRect(0, canvas.height - (fontSize * 3), canvas.width, fontSize * 3);
+      ctx.fillStyle = "white";
+      ctx.font = `bold ${fontSize}px monospace`;
+      ctx.fillText(timestamp, 20, canvas.height - (fontSize * 1.6));
+      ctx.fillText(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`, 20, canvas.height - (fontSize * 0.5));
+
+      imageData = canvas.toDataURL("image/jpeg", 0.8);
+      canvas.style.display = "block";
+      video.style.display = "none";
+      document.getElementById("imageData").value = imageData;
+      document.getElementById("locationData").value = latitude + "," + longitude;
+      document.getElementById("timeData").value = new Date().toISOString();
+      
+      alert("Evidence captured with GPS stamp.");
+    }
+  }
+
+  function retake() {
+    canvas.style.display = "none";
+    video.style.display = "block";
+    imageData = null;
+  }
+
+  function submitReport() {
+
+    // CHECK IMAGE
+    if (!imageData) {
+
+        alert("Please capture evidence first.");
+
+        return;
+    }
+
+    // LOG
+    console.log("SUBMITTING:", {
+        img: "Base64 Attached",
+        loc: address,
+        gps: `${latitude}, ${longitude}`,
+        time: timestamp
+    });
+
+    // SUBMIT FORM TO DJANGO
+    document.querySelector("form").submit();
+
+
+    alert("🚨 EMERGENCY REPORT SENT!\nCase ID: " + Math.floor(Math.random() * 1000000));
+    location.reload();
+  }
+</script>
+
+</body>
+</html>

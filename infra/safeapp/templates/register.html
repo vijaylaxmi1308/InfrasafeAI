@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+ <div class="p-12 flex flex-col justify-center">
+
+        <h2 class="text-red-500 font-bold tracking-widest text-sm mb-6">
+            CREATE ACCOUNT
+        </h2>
+
+        <form method="POST" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label class="text-gray-500 text-sm">FULL NAME</label>
+                <input type="text" name="name"
+                    class="w-full bg-slate-100 rounded-xl px-4 py-3 mt-2 outline-none"
+                    placeholder="Enter Name">
+            </div>
+
+            <div>
+                <label class="text-gray-500 text-sm">EMAIL</label>
+                <input type="email" name="email"
+                    class="w-full bg-slate-100 rounded-xl px-4 py-3 mt-2 outline-none"
+                    placeholder="Enter Email">
+            </div>
+
+            <div>
+                <label class="text-gray-500 text-sm">PASSWORD</label>
+                <input type="password" name="password"
+                    class="w-full bg-slate-100 rounded-xl px-4 py-3 mt-2 outline-none"
+                    placeholder="Enter Password">
+            </div>
+            <select name="role" class="text-sm font-bold text-blue-600 bg-transparent outline-none cursor-pointer">
+    <option value="citizen">Citizen</option>
+    <option value="admin">Admin</option>
+</select>
+
+            <div class="flex justify-between items-center pt-3">
+                <a href="/" class="text-blue-600 font-semibold">
+                    Back to Login
+                </a>
+
+                <button type="submit"
+                    class="bg-[#081633] text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800">
+                    Register
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+{% endblock %}

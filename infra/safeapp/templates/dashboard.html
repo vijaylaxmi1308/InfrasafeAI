@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraSafe AI | Desktop Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        #webcam-video { transform: scaleX(-1); }
+        .modal-active { display: flex !important; }
+        .sidebar-link.active { background: #1e293b; color: #3b82f6; border-right: 4px solid #3b82f6; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
+
+    <div id="webcam-modal" class="fixed inset-0 bg-slate-900/90 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-[2.5rem] overflow-hidden max-w-xl w-full shadow-2xl">
+            <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                <span class="font-bold text-slate-800 uppercase text-xs tracking-widest">AI Scanner Live Feed</span>
+                <button onclick="closeCamera()" class="text-slate-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="relative bg-black aspect-video">
+                <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover"></video>
+            </div>
+            <div class="p-6">
+                <button onclick="takeSnapshot()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all">
+                    <i class="fas fa-camera mr-2"></i> Capture Evidence
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <aside class="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-40">
+        <div class="p-8 border-b border-slate-800">
+        <div class="flex items-center mb-10">
+                        <div class="bg-blue-600 p-2 rounded-lg mr-3">
+                            <i class="fas fa-robot text-xl"></i>
+                        </div>
+                        <h1 class="text-xl font-black tracking-tighter ">InfraSafe AI</h1>
+                    </div>
+        </div>
+        <h1 id="page-title" class="text-2xl font-black text-slate-100 px-8 py-6">Dashboard</h1>
+        <nav class="flex-1 mt-6">
+            <a href="#" onclick="showTab('report')" class="sidebar-link active flex items-center px-8 py-4 hover:bg-slate-800 transition-all">
+                <i class="fas fa-plus-circle mr-4 text-lg"></i>
+                <span class="font-bold">Report Incident</span>
+            </a>
+            <a href="#" onclick="showTab('status')" class="sidebar-link flex items-center px-8 py-4 hover:bg-slate-800 transition-all">
+                <i class="fas fa-list-ul mr-4 text-lg"></i>
+                <span class="font-bold">View Status</span>
+            </a>
+            <a href="#" onclick="showTab('compensation')" class="sidebar-link flex items-center px-8 py-4 hover:bg-slate-800 transition-all">
+                <i class="fas fa-hand-holding-usd mr-4 text-lg"></i>
+                <span class="font-bold">Compensation</span>
+            </a>
+        </nav>
+
+        <div class="p-8 border-t border-slate-800">
+            <button class="text-slate-500 hover:text-white flex items-center gap-2 text-sm font-bold">
+                <i class="fas fa-sign-out-alt"></i> <a href="/" class="text-sm text-gray-400">Logout</a>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto bg-slate-50 relative">
+        
+        <header class="bg-white border-b border-slate-200 p-6 sticky top-0 z-30 flex justify-between items-center">
+            <h1 id="page-title" class="text-xl font-bold text-slate-800"></h1>
+            <div class="flex items-center gap-4">
+                <div class="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </header>
+        
+<form method="POST" action="/submit_dashboard_report/">
+{% csrf_token %}
+        <div class="p-10 max-w-5xl mx-auto">
+            
+            <section id="report" class="tab-content active">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-black text-slate-900 leading-tight">New Incident Report</h2>
+                    <p class="text-slate-500">AI-powered infrastructure damage verification.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-6">
+                       <div class="text-sm text-slate-500 bg-slate-50 p-3 rounded-xl mb-4">
+    <p id="location-text">📍 Getting GPS location...</p>
+</div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Detailed Description</label>
+                            <textarea rows="4" name="description" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Tell us exactly what and where..."></textarea>
+                        </div>
+                        <input type="hidden" name="image" id="imageData">
+                        <input type="hidden" name="location" id="locationData">
+                        <input type="hidden" name="time" id="timeData">
+
+                        <button class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-slate-800 active:scale-95 transition-all uppercase tracking-widest text-xs">
+                            Submit
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div onclick="openCamera()" class="flex flex-col items-center justify-center bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl shadow-blue-100 active:scale-95 transition-all cursor-pointer">
+                                <div class="bg-white/20 p-4 rounded-full mb-3"><i class="fas fa-camera text-2xl"></i></div>
+                                <span class="text-xs font-bold uppercase tracking-tight">Webcam</span>
+                            </div>
+
+                            <label class="flex flex-col items-center justify-center bg-white border-2 border-slate-100 text-slate-600 p-8 rounded-[2.5rem] shadow-sm active:scale-95 transition-all cursor-pointer hover:bg-slate-50">
+                                <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleImage(this)">
+                                <div class="bg-slate-50 p-4 rounded-full mb-3"><i class="fas fa-images text-2xl text-slate-400"></i></div>
+                                <span class="text-xs font-bold uppercase tracking-tight">Upload</span>
+                            </label>
+                        </div>
+
+                        <div id="preview-box" class="hidden">
+                            <div class="relative rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl">
+                                <img id="image-preview" class="w-full h-auto object-cover bg-slate-200">
+                                <button onclick="clearImage()" class="absolute top-4 right-4 bg-red-500 text-white h-10 w-10 rounded-full shadow-lg">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </form>
+
+            <section id="status" class="tab-content">
+                <h2 class="text-3xl font-black text-slate-900 mb-6">Incident History</h2>
+                <div class="space-y-6">
+
+    {% for report in reports %}
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+
+        <!-- TABLE HEADER -->
+        <div class="grid grid-cols-4 bg-slate-50 px-8 py-5">
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Case ID
+            </div>
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Type
+            </div>
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Status
+            </div>
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+    Date
+</div>
+
+        </div>
+
+        <!-- REPORT DATA -->
+        <div class="grid grid-cols-4 items-center px-8 py-5">
+
+            <div class="font-bold text-lg">
+                #{{ report.id|stringformat:"s"|slice:":6"|upper  }}
+            </div>
+
+            <div class="text-slate-600">
+                {{ report.ai_result }}
+            </div>
+
+            <div>
+
+                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+
+                {% if report.status == 'Pending' %}
+                    bg-amber-100 text-amber-600
+
+                {% elif report.status == 'Work Completed' %}
+                    bg-green-100 text-green-700
+
+                {% else %}
+                    bg-blue-100 text-blue-700
+                {% endif %}
+                ">
+
+                    {{ report.status }}
+
+                </span>
+
+            </div>
+            <div class="text-slate-500 text-sm">
+    {{ report.created_at|date:"M d, Y - h:i A" }}
+</div>
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+            </section>
+
+            <section id="compensation" class="tab-content">
+                <div class="space-y-6">
+
+    {% for comp in compensations %}
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+
+        <div class="grid grid-cols-4 bg-slate-50 px-8 py-5">
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Case
+            </div>
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Reason
+            </div>
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Amount
+            </div>
+
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Status
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-4 items-center px-8 py-5">
+
+            <div class="font-bold">
+                CASE-{{ comp.report_id|slice:":6"|upper }}
+            </div>
+
+            <div class="text-slate-600">
+                {{ comp.ai_result }}
+            </div>
+
+            <div class="text-green-600 font-bold">
+                ₹{{ comp.amount }}
+            </div>
+
+            <div>
+
+                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+
+                {% if comp.status == 'Approved' %}
+                    bg-green-100 text-green-700
+
+                {% else %}
+                    bg-amber-100 text-amber-600
+                {% endif %}
+                ">
+
+                    {{ comp.status }}
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <div class="bg-white rounded-3xl p-10 text-center text-slate-400">
+
+        No compensations yet.
+
+    </div>
+
+    {% endfor %}
+
+</div>
+            </section>
+
+        </div>
+    </main>
+
+    <canvas id="snapshot-canvas" class="hidden"></canvas>
+
+    <script>
+        const video = document.getElementById('webcam-video');
+        const modal = document.getElementById('webcam-modal');
+        const canvas = document.getElementById('snapshot-canvas');
+        const previewImg = document.getElementById('image-preview');
+        const previewBox = document.getElementById('preview-box');
+
+        // TAB SWITCHING
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('onclick').includes(id)) link.classList.add('active');
+            });
+
+            const titles = { 'report': 'New Report', 'status': 'Incident Status', 'compensation': 'Compensation' };
+            document.getElementById('page-title').innerText = titles[id];
+        }
+
+        // CAMERA LOGIC
+        async function openCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                modal.classList.add('modal-active');
+            } catch (err) {
+                alert("Webcam access denied.");
+            }
+        }
+
+        function closeCamera() {
+            if (video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
+            modal.classList.remove('modal-active');
+        }
+
+
+        function takeSnapshot() {
+            console.log("LAT:", latitude);
+            console.log("LON:", longitude);
+
+            const ctx = canvas.getContext('2d');
+
+            if (!video.videoWidth) {
+                alert("Camera not ready");
+                return;
+            }
+
+            if (!latitude || !longitude) {
+                alert("Wait for GPS to load");
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            
+            ctx.drawImage(video, 0, 0);
+
+            let timestamp = new Date().toLocaleString();
+            let coordsText = (latitude && longitude)? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`: "Location unavailable";
+
+            let fontSize = Math.floor(canvas.height / 22);
+
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillRect(0, canvas.height - (fontSize * 4), canvas.width, fontSize * 4);
+
+            ctx.fillStyle = "white";
+            ctx.font = `bold ${fontSize + 4}px monospace`;
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 5;
+
+            ctx.fillText(timestamp, 20, canvas.height - (fontSize * 2.5));
+            ctx.fillText(coordsText, 20, canvas.height - (fontSize * 0.8));
+
+            let imageData = canvas.toDataURL("image/png");
+
+            document.getElementById("image-preview").src = imageData;
+            document.getElementById("preview-box").classList.remove("hidden");
+
+            document.getElementById("imageData").value = imageData;
+            document.getElementById("locationData").value = latitude + "," + longitude;
+            document.getElementById("timeData").value = new Date().toISOString();
+
+            closeCamera();
+
+    // 🔥 SHOW ADDRESS AFTER CAPTURE (YOUR REQUIREMENT)
+            document.getElementById("location-text").innerText =
+                address ? `📍 ${address}` : "📍 Location not available";
+}
+
+    
+    
+         
+
+
+        function handleImage(input) {
+
+    const file = input.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+
+        // SHOW IMAGE PREVIEW
+        document.getElementById("image-preview").src = e.target.result;
+
+        // SHOW PREVIEW BOX
+        document.getElementById("preview-box").classList.remove("hidden");
+
+        // SAVE IMAGE DATA
+        document.getElementById("imageData").value = e.target.result;
+
+        // SAVE LOCATION
+        document.getElementById("locationData").value =
+            `${latitude},${longitude}`;
+
+        // SAVE TIME
+        document.getElementById("timeData").value =
+            new Date().toISOString();
+    };
+
+    reader.readAsDataURL(file);
+}
+
+
+let latitude = "";
+let longitude = "";
+let address = "";
+
+if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+        async (pos) => {
+            latitude = pos.coords.latitude;
+            longitude = pos.coords.longitude;
+
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                );
+                const data = await res.json();
+
+                address = data.display_name || "Unknown Location";
+
+            } catch {}
+        },
+        () => {
+            document.getElementById("location-text").innerText =
+                "❌ Location permission denied";
+        },
+        { enableHighAccuracy: true }
+    );
+}
+    </script>
+</body>
+</html>
