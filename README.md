@@ -94,7 +94,7 @@ http://127.0.0.1:8000/
 2. Citizens report infrastructure issues by uploading an image and providing the incident location.
 3. The uploaded image is processed using AI to identify and classify the reported issue.
 4. Report details are securely stored in MongoDB Atlas.
-5. Administrators review the submitted reports through the admin dashboard.
+5. Administrators get notified and review the submitted reports through the admin dashboard.
 6. Complaint status is updated after verification and necessary action.
 7. Citizens can monitor the progress of their reports through the system.
 
